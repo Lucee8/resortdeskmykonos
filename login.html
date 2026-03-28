@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ResortDesk — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── IMPORTANT: Replace REGISTRY_URL below with your Apps Script Web App URL ── */
+:root{--gold:#C9A84C;--gold-light:#E8C97A;--deep:#0D1117;--surface:#161B22;--card:#1C2333;--border:rgba(201,168,76,0.18);--text:#E6EDF3;--muted:rgba(230,237,243,0.45);--success:#3FB950;--error:#F85149;--input-bg:rgba(255,255,255,0.04);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(201,168,76,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,0.04) 0%,transparent 50%);pointer-events:none;}
+.login-wrap{width:100%;max-width:420px;position:relative;z-index:1;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.logo-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--deep);margin:0 auto 12px;}
+.logo-resort-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.logo-resort-loc{font-size:11px;color:var(--muted);}
+.logo-brand{font-size:10px;color:rgba(201,168,76,0.5);letter-spacing:2px;text-transform:uppercase;margin-top:8px;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.4);}
+.login-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.login-tab{padding:13px;text-align:center;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;border:none;background:none;}
+.login-tab.active{color:var(--gold-light);background:rgba(201,168,76,0.06);border-bottom:2px solid var(--gold);}
+.login-tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,.02);}
+.login-body{padding:26px;}
+.login-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;margin-bottom:3px;}
+.login-title em{color:var(--gold-light);font-style:italic;}
+.login-subtitle{font-size:12px;color:var(--muted);margin-bottom:22px;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.4px;}
+.field input{background:var(--input-bg);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:all .2s;width:100%;}
+.field input:focus{border-color:var(--gold);background:rgba(201,168,76,.05);box-shadow:0 0 0 3px rgba(201,168,76,.08);}
+.field input::placeholder{color:rgba(230,237,243,.2);}
+.pin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px;}
+.pin-input{background:var(--input-bg);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 8px;text-align:center;font-size:22px;font-weight:600;color:var(--gold-light);outline:none;transition:all .2s;font-family:'Cormorant Garamond',serif;}
+.pin-input:focus{border-color:var(--gold);background:rgba(201,168,76,.05);box-shadow:0 0 0 3px rgba(201,168,76,.08);}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),#A07828);color:var(--deep);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(201,168,76,.3);letter-spacing:.5px;margin-top:6px;}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,.4);}
+.btn-login:disabled{opacity:0.7;transform:none;cursor:not-allowed;}
+.login-forgot{text-align:center;margin-top:12px;}
+.forgot-link{font-size:12px;color:var(--muted);cursor:pointer;transition:color .2s;background:none;border:none;}
+.forgot-link:hover{color:var(--gold-light);}
+.login-error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--error);margin-bottom:14px;display:none;}
+.login-error.show{display:block;}
+.loading-box{text-align:center;padding:40px 20px;}
+.loading-box p{font-size:13px;color:var(--muted);margin-top:12px;}
+.no-resort-box{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:12px;padding:24px;text-align:center;margin:20px;}
+.no-resort-box h3{color:var(--error);font-size:16px;margin-bottom:8px;}
+.no-resort-box p{font-size:12px;color:var(--muted);line-height:1.7;}
+.suspended-box{background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;margin:20px;}
+.suspended-box h3{color:var(--gold-light);font-size:16px;margin-bottom:8px;}
+.suspended-box p{font-size:12px;color:var(--muted);line-height:1.7;}
+.plan-badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+.plan-free{background:rgba(230,237,243,.08);color:var(--muted);}
+.plan-pro{background:rgba(201,168,76,.15);color:var(--gold-light);}
+.forgot-panel{display:none;padding:26px;}
+.forgot-panel.show{display:block;}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;margin-bottom:18px;padding:0;transition:color .2s;}
+.back-btn:hover{color:var(--gold-light);}
+.forgot-info{background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7;}
+.forgot-info strong{color:var(--gold-light);display:block;margin-bottom:6px;}
+.login-footer{text-align:center;padding:14px 26px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.login-footer span{color:var(--gold);}
+.spinner{width:14px;height:14px;border:2px solid rgba(13,17,23,.3);border-top-color:var(--deep);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+.spinner-lg{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+
+  <div class="login-logo">
+    <div class="logo-icon">R</div>
+    <div class="logo-resort-name" id="resort-display-name">Loading…</div>
+    <div class="logo-resort-loc" id="resort-display-loc"></div>
+    <div class="logo-brand">Powered by ResortDesk</div>
+  </div>
+
+  <div class="login-card" id="main-card">
+    <!-- Loading state -->
+    <div class="loading-box" id="loading-state">
+      <div class="spinner-lg"></div>
+      <p>Verifying hotel…</p>
+    </div>
+
+    <!-- Invalid hotel -->
+    <div class="no-resort-box" id="no-resort-error" style="display:none;">
+      <h3>⚠️ Invalid Link</h3>
+      <p>This login link is invalid or the hotel is not registered.<br/>Please contact your administrator for the correct login link.</p>
+    </div>
+
+    <!-- Suspended hotel -->
+    <div class="suspended-box" id="suspended-error" style="display:none;">
+      <h3>⏸ Account Suspended</h3>
+      <p>This hotel's ResortDesk account has been suspended.<br/>Please contact ResortDesk support to reactivate.</p>
+    </div>
+
+    <!-- Login UI (shown after hotel verified) -->
+    <div id="login-ui" style="display:none;">
+      <div class="login-tabs" id="login-tabs">
+        <button class="login-tab active" onclick="switchTab('admin')" id="tab-admin">🏨 Admin</button>
+        <button class="login-tab" onclick="switchTab('staff')" id="tab-staff">👤 Staff</button>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="panel-admin">
+        <div class="login-body">
+          <div class="login-title">Admin <em>Login</em></div>
+          <div class="login-subtitle">Enter your name and password to continue</div>
+          <div class="login-error" id="admin-error"></div>
+          <div class="field"><label>Your Name</label><input type="text" id="admin-name" placeholder="e.g. Rahul Desai" autocomplete="name"/></div>
+          <div class="field"><label>Admin Password</label><input type="password" id="admin-password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin('admin')"/></div>
+          <button class="btn-login" onclick="doLogin('admin')" id="admin-btn">Sign In as Admin</button>
+          <div class="login-forgot"><button class="forgot-link" onclick="showForgot()">Forgot password?</button></div>
+        </div>
+      </div>
+
+      <!-- STAFF -->
+      <div id="panel-staff" style="display:none;">
+        <div class="login-body">
+          <div class="login-title">Staff <em>Login</em></div>
+          <div class="login-subtitle">Enter your name and 4-digit PIN</div>
+          <div class="login-error" id="staff-error"></div>
+          <div class="field"><label>Your Name</label><input type="text" id="staff-name" placeholder="e.g. Priya Sharma" autocomplete="name"/></div>
+          <div class="field">
+            <label>Staff PIN</label>
+            <div class="pin-grid">
+              <input type="password" inputmode="numeric" class="pin-input" maxlength="1" id="pin1" oninput="pinNext(this,'pin2')" onkeydown="pinBack(event,this,'')"/>
+              <input type="password" inputmode="numeric" class="pin-input" maxlength="1" id="pin2" oninput="pinNext(this,'pin3')" onkeydown="pinBack(event,this,'pin1')"/>
+              <input type="password" inputmode="numeric" class="pin-input" maxlength="1" id="pin3" oninput="pinNext(this,'pin4')" onkeydown="pinBack(event,this,'pin2')"/>
+              <input type="password" inputmode="numeric" class="pin-input" maxlength="1" id="pin4" oninput="pinDone()" onkeydown="pinBack(event,this,'pin3')"/>
+            </div>
+          </div>
+          <button class="btn-login" onclick="doLogin('staff')" id="staff-btn">Sign In as Staff</button>
+        </div>
+      </div>
+
+      <!-- FORGOT -->
+      <div class="forgot-panel" id="forgot-panel">
+        <button class="back-btn" onclick="hideForgot()">← Back to login</button>
+        <div class="login-title" style="margin-bottom:6px;">Reset <em>Password</em></div>
+        <div class="login-subtitle" style="margin-bottom:18px;">Contact your administrator</div>
+        <div class="forgot-info">
+          <strong>How to reset your password:</strong>
+          Contact your ResortDesk administrator. They can update your credentials in the registry sheet.
+        </div>
+      </div>
+    </div>
+
+    <div class="login-footer" id="login-footer" style="display:none;">Secure · Private · <span>ResortDesk</span></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// ★ REPLACE THIS WITH YOUR APPS SCRIPT WEB APP URL
+// ══════════════════════════════════════════════════
+const REGISTRY_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+// Session expires after 12 hours
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+
+const urlParams = new URLSearchParams(window.location.search);
+const hotelId   = urlParams.get('hotel') || '';
+let hotelInfo   = null;
+
+// ── On load: verify hotel, then check for existing session ──
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!hotelId) {
+    showState('no-resort');
+    return;
+  }
+
+  // Check for valid existing session first
+  const s = getSession();
+  if (s && s.hotelId === hotelId && !isSessionExpired(s)) {
+    window.location.href = 'ResortDesk.html';
+    return;
+  }
+
+  // Verify hotel exists via registry
+  try {
+    const res  = await fetch(REGISTRY_URL + '?action=hotelInfo&hotelId=' + encodeURIComponent(hotelId));
+    const json = await res.json();
+    if (json.status === 'success') {
+      hotelInfo = json;
+      document.getElementById('resort-display-name').textContent = json.name;
+      document.getElementById('resort-display-loc').textContent  = json.location;
+      document.title = json.name + ' — Login';
+
+      // Pre-fill name
+      const saved = localStorage.getItem('rd_last_name_' + hotelId);
+      if (saved) {
+        document.getElementById('admin-name').value = saved;
+        document.getElementById('staff-name').value = saved;
+      }
+
+      showState('login');
+    } else if (json.message && json.message.includes('suspended')) {
+      showState('suspended');
+    } else {
+      showState('no-resort');
+    }
+  } catch(err) {
+    showState('no-resort');
+  }
+});
+
+// ── Show/hide UI states ──
+function showState(state) {
+  document.getElementById('loading-state').style.display    = state === 'loading'   ? 'block' : 'none';
+  document.getElementById('no-resort-error').style.display  = state === 'no-resort' ? 'block' : 'none';
+  document.getElementById('suspended-error').style.display  = state === 'suspended' ? 'block' : 'none';
+  document.getElementById('login-ui').style.display         = state === 'login'     ? 'block' : 'none';
+  document.getElementById('login-footer').style.display     = state === 'login'     ? 'block' : 'none';
+
+  if (state !== 'loading') {
+    document.getElementById('resort-display-name').textContent =
+      state === 'no-resort' ? 'Access Denied' :
+      state === 'suspended' ? 'Account Suspended' :
+      (hotelInfo ? hotelInfo.name : 'ResortDesk');
+  }
+}
+
+// ── Unified login for admin & staff ──
+async function doLogin(role) {
+  if (!hotelInfo) { showError(role, 'Hotel not loaded. Please refresh.'); return; }
+
+  const name     = document.getElementById(role === 'admin' ? 'admin-name' : 'staff-name').value.trim() || role;
+  const password = role === 'admin'
+    ? document.getElementById('admin-password').value
+    : ['pin1','pin2','pin3','pin4'].map(id => document.getElementById(id).value).join('');
+
+  if (!password || (role === 'staff' && password.length < 4)) {
+    showError(role, role === 'admin' ? 'Please enter your password.' : 'Please enter all 4 digits.');
+    return;
+  }
+
+  const btn = document.getElementById(role + '-btn');
+  btn.innerHTML = '<span class="spinner"></span>Signing in…';
+  btn.disabled  = true;
+
+  try {
+    const url = REGISTRY_URL +
+      '?action=login' +
+      '&hotelId='   + encodeURIComponent(hotelId) +
+      '&role='      + encodeURIComponent(role) +
+      '&password='  + encodeURIComponent(password) +
+      '&name='      + encodeURIComponent(name);
+
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    if (json.status === 'success') {
+      localStorage.setItem('rd_last_name_' + hotelId, name);
+      saveSession({
+        hotelId:   hotelId,
+        role:      role,
+        userName:  name,
+        hotelName: json.name,
+        location:  json.location,
+        phone:     json.phone,
+        plan:      json.plan,
+        loginTime: new Date().toISOString(),
+      });
+      window.location.href = 'ResortDesk.html';
+    } else {
+      showError(role, json.message || 'Login failed. Please try again.');
+      if (role === 'staff') {
+        ['pin1','pin2','pin3','pin4'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('pin1').focus();
+      } else {
+        document.getElementById('admin-password').value = '';
+      }
+      btn.innerHTML = role === 'admin' ? 'Sign In as Admin' : 'Sign In as Staff';
+      btn.disabled  = false;
+    }
+  } catch(err) {
+    showError(role, 'Network error. Please check your connection.');
+    btn.innerHTML = role === 'admin' ? 'Sign In as Admin' : 'Sign In as Staff';
+    btn.disabled  = false;
+  }
+}
+
+// ── Session helpers ──
+function saveSession(data) {
+  localStorage.setItem('rd_session', JSON.stringify(data));
+}
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('rd_session')); } catch(e) { return null; }
+}
+function isSessionExpired(s) {
+  if (!s || !s.loginTime) return true;
+  return (Date.now() - new Date(s.loginTime).getTime()) > SESSION_TTL_MS;
+}
+
+// ── PIN helpers ──
+function pinNext(el, nextId) { if (el.value && nextId) document.getElementById(nextId).focus(); }
+function pinDone() { if (['pin1','pin2','pin3','pin4'].every(id => document.getElementById(id).value)) doLogin('staff'); }
+function pinBack(e, el, prevId) { if (e.key === 'Backspace' && !el.value && prevId) document.getElementById(prevId).focus(); }
+
+// ── Tab switching ──
+function switchTab(tab) {
+  document.getElementById('panel-admin').style.display = tab === 'admin' ? 'block' : 'none';
+  document.getElementById('panel-staff').style.display = tab === 'staff' ? 'block' : 'none';
+  document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
+  document.getElementById('tab-staff').classList.toggle('active', tab === 'staff');
+  clearErrors();
+}
+
+// ── Forgot password ──
+function showForgot() {
+  document.getElementById('panel-admin').style.display = 'none';
+  document.getElementById('login-tabs').style.display  = 'none';
+  document.getElementById('forgot-panel').classList.add('show');
+}
+function hideForgot() {
+  document.getElementById('forgot-panel').classList.remove('show');
+  document.getElementById('login-tabs').style.display = 'grid';
+  switchTab('admin');
+}
+
+// ── Error display ──
+function showError(role, msg) {
+  const el = document.getElementById(role + '-error');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+function clearErrors() {
+  ['admin-error','staff-error'].forEach(id => document.getElementById(id).classList.remove('show'));
+}
+</script>
+</body>
+</html>
